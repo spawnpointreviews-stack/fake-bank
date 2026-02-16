@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Trust Online Banking</title>
+    <style>
+        :root {
+            --primary-blue: #002d72; /* Deep Corporate Blue */
+            --secondary-blue: #005eb8;
+            --accent-gold: #c69214;
+            --bg-light: #f4f7f9;
+            --white: #ffffff;
+            --text-dark: #333333;
+            --text-muted: #6c757d;
+            --border: #dee2e6;
+            --sidebar-width: 280px;
+            --success: #28a745;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Loading Spinner */
+        #loader {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-blue);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--primary-blue);
+            color: var(--white);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-header {
+            padding: 30px 25px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .nav-list {
+            list-style: none;
+            padding: 20px 0;
+            flex-grow: 1;
+        }
+
+        .nav-item {
+            padding: 15px 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-left: 4px solid transparent;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255,255,255,0.05);
+        }
+
+        .nav-item.active {
+            background-color: rgba(255,255,255,0.1);
+            border-left-color: var(--accent-gold);
+            font-weight: bold;
+        }
+
+        /* Main Container */
+        .main-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Top Header */
+        header {
+            background-color: var(--white);
+            height: 80px;
+            padding: 0 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .user-meta {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .msg-badge {
+            background: #d9534f;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            margin-left: 5px;
+        }
+
+        .btn-logout {
+            padding: 8px 20px;
+            border: 1px solid var(--primary-blue);
+            color: var(--primary-blue);
+            background: transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-logout:hover {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        /* View Content */
+        .view {
+            padding: 40px;
+            overflow-y: auto;
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .view.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Dashboard Styles */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: var(--white);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-bottom: 3px solid transparent;
+        }
+
+        .card-balance { border-bottom-color: var(--primary-blue); }
+        .card-savings { border-bottom-color: var(--success); }
+
+        .card h4 { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 10px; }
+        .amount { font-size: 2rem; font-weight: bold; color: var(--primary-blue); }
+
+        /* Table */
+        .table-container {
+            background: var(--white);
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { text-align: left; padding: 15px; border-bottom: 2px solid var(--bg-light); color: var(--text-muted); }
+        td { padding: 15px; border-bottom: 1px solid var(--bg-light); }
+        .amt-neg { color: #d9534f; font-weight: 600; }
+        .amt-pos { color: var(--success); font-weight: 600; }
+
+        /* Transfer Form */
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; }
+        input, select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 4px; max-width: 500px; }
+        .btn-submit { background: var(--primary-blue); color: white; border: none; padding: 12px 30px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-submit:hover { background: var(--secondary-blue); }
+
+        /* Notification Pop */
+        #notification {
+            position: fixed;
+            bottom: 20px; right: 20px;
+            background: var(--primary-blue);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            display: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <div class="spinner"></div>
+        <p style="margin-top: 15px; color: var(--primary-blue);">Securely processing...</p>
+    </div>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-header">GLOBAL TRUST</div>
+        <ul class="nav-list">
+            <li class="nav-item active" onclick="switchPage('dashboard', this)">Dashboard</li>
+            <li class="nav-item" onclick="switchPage('transfers', this)">Transfers & Payments</li>
+            <li class="nav-item" onclick="switchPage('messages', this)">Message Center</li>
+        </ul>
+        <div style="padding: 20px; font-size: 0.75rem; opacity: 0.6;">
+            Ver: 4.8.2.0 (Stable)<br>
+            Encrypted Session Active
+        </div>
+    </nav>
+
+    <!-- Content -->
+    <div class="main-container">
+        <header>
+            <div id="page-title" style="font-size: 1.2rem; font-weight: 600; color: var(--primary-blue);">Account Overview</div>
+            <div class="user-meta">
+                <span>Welcome, <strong>Mary Peterson</strong></span>
+                <span style="cursor: pointer;" onclick="switchPage('messages', document.querySelector('.nav-list .nav-item:nth-child(3)'))">Messages <span class="msg-badge">2</span></span>
+                <button class="btn-logout" onclick="window.location.reload()">Sign Out</button>
+            </div>
+        </header>
+
+        <!-- DASHBOARD VIEW -->
+        <section id="dashboard" class="view active">
+            <div class="stats-grid">
+                <div class="card card-balance">
+                    <h4>Checking (...4402)</h4>
+                    <p class="amount">$42,506.12</p>
+                    <p style="color: var(--success); font-size: 0.8rem; margin-top: 5px;">Available Now</p>
+                </div>
+                <div class="card card-savings">
+                    <h4>High-Yield Savings (...9110)</h4>
+                    <p class="amount">$128,442.00</p>
+                    <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 5px;">Interest earned: $512.10 (YTD)</p>
+                </div>
+                <div class="card">
+                    <h4>Total Assets</h4>
+                    <p class="amount" style="color: var(--text-dark)">$170,948.12</p>
+                    <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 5px;">Combined Liquidity</p>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <h3 style="margin-bottom: 10px;">Recent Activity</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Transaction Description</th>
+                            <th>Status</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>10/24/2025</td><td>Walmart - Supercenter #3421</td><td>Completed</td><td class="amt-neg">-$82.10</td></tr>
+                        <tr><td>10/23/2025</td><td>Social Security Admin - Deposit</td><td>Completed</td><td class="amt-pos">+$1,450.00</td></tr>
+                        <tr><td>10/22/2025</td><td>Electric Power Utility - Autopay</td><td>Pending</td><td class="amt-neg">-$115.00</td></tr>
+                        <tr><td>10/21/2025</td><td>Starbucks Coffee - Midtown</td><td>Completed</td><td class="amt-neg">-$6.45</td></tr>
+                        <tr><td>10/20/2025</td><td>Internal Transfer from Savings</td><td>Completed</td><td class="amt-pos">+$500.00</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- TRANSFERS VIEW -->
+        <section id="transfers" class="view">
+            <div class="table-container" style="max-width: 800px;">
+                <h3 style="margin-bottom: 20px;">External Funds Transfer</h3>
+                <div class="form-group">
+                    <label>From Account</label>
+                    <select>
+                        <option>Checking (...4402) - Balance: $42,506.12</option>
+                        <option>Savings (...9110) - Balance: $128,442.00</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>To Account (Routing Number)</label>
+                    <input type="text" placeholder="9-digit Routing Number">
+                </div>
+                <div class="form-group">
+                    <label>Recipient Account Number</label>
+                    <input type="password" placeholder="Account Number">
+                </div>
+                <div class="form-group">
+                    <label>Amount (USD)</label>
+                    <input type="number" placeholder="0.00">
+                </div>
+                <button class="btn-submit" onclick="simulateProcessing('Transfer Request Submitted. Please wait for SMS verification.')">Initiate Transfer</button>
+            </div>
+        </section>
+
+        <!-- MESSAGES VIEW -->
+        <section id="messages" class="view">
+            <div class="table-container">
+                <h3>Secure Message Center</h3>
+                <table>
+                    <thead>
+                        <tr><th>From</th><th>Subject</th><th>Date</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr style="font-weight: bold; background-color: #f0f7ff; cursor: pointer;">
+                            <td>Security Dept</td>
+                            <td>Update to Privacy Policy & Terms of Service</td>
+                            <td>Today</td>
+                        </tr>
+                        <tr style="font-weight: bold; background-color: #f0f7ff; cursor: pointer;">
+                            <td>Customer Support</td>
+                            <td>RE: Inbound wire transfer inquiry</td>
+                            <td>Yesterday</td>
+                        </tr>
+                        <tr style="cursor: pointer;">
+                            <td>Global Trust</td>
+                            <td>Your Monthly Statement is Ready</td>
+                            <td>10/01/2025</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <div id="notification"></div>
+
+    <script>
+        function switchPage(pageId, element) {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+
+            setTimeout(() => {
+                document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+                document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
+
+                element.classList.add('active');
+                document.getElementById(pageId).classList.add('active');
+
+                const titles = {
+                    'dashboard': 'Account Overview',
+                    'transfers': 'Transfer & Payments',
+                    'messages': 'Secure Message Center'
+                };
+                document.getElementById('page-title').innerText = titles[pageId];
+
+                loader.style.display = 'none';
+            }, 600);
+        }
+
+        function simulateProcessing(msg) {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+            setTimeout(() => {
+                loader.style.display = 'none';
+                showNotification(msg);
+            }, 2000);
+        }
+
+        function showNotification(text) {
+            const note = document.getElementById('notification');
+            note.innerText = text;
+            note.style.display = 'block';
+            setTimeout(() => {
+                note.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
