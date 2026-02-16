@@ -1,0 +1,13 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000]
+"DriverDesc"="NVIDIA GeForce GTX 1050 Ti"
+"ProviderName"="NVIDIA"
+"HardwareInformation.AdapterString"="NVIDIA GeForce GTX 1050 Ti"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e967-e325-11ce-bfc1-08002be10318}\0000]
+"FriendlyName"="Samsung SSD 870 EVO 500GB"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation]
+"Manufacturer"="Dell Inc."
+"Model"="Inspiron 15 7000 Gaming"
